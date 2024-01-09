@@ -2,11 +2,11 @@ from fastapi import FastAPI
 
 from auth.schemas import UserRead, UserCreate
 from auth.base_config import auth_backend, fastapi_users
+from ads.routers import router as router_operation
 
 app = FastAPI(
     title='Blitz Market'
 )
-
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
@@ -19,3 +19,5 @@ app.include_router(
     prefix="/auth",
     tags=["auth"],
 )
+
+app.include_router(router_operation)
