@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.put("/{user_id}/change-role", status_code=200, responses={
+@router.put("/{user_id}/change_role_or_active", status_code=200, responses={
     403: {"description": "Access forbidden for this role"},
     404: {"description": "User not found"},
     500: {"description": "Internal Server Error"}
@@ -21,6 +21,8 @@ router = APIRouter(
 async def change_user_role(
     user_id: int,
     current_user: User = Depends(current_user),
+    value_role_id: int = Query(ge=1, le=2, default=1),
+    value_active: int = Query(ge=0, le=1, default=1),
     session: AsyncSession = Depends(get_async_session)
 ):
     try:
@@ -40,7 +42,9 @@ async def change_user_role(
                 })
 
         await session.execute(
-            update(User).where(User.id == user_id).values(role_id=2)
+            update(User).where(User.id == user_id).values(
+                role_id=value_role_id, is_active=value_active
+            )
         )
         await session.commit()
 

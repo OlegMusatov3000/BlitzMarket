@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.base_config import current_user
@@ -95,8 +95,53 @@ async def get_detail_ad(
         })
 
 
+@router.put("/{ad_id}/move_ad", responses={
+    403: {"description": "You do not have permission to access this resource"},
+    404: {"description": "Ad not found"},
+    500: {"description": "Internal Server Error"}
+})
+async def move_ad(
+    ad_id: int,
+    ads_type: AdType,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_user)
+):
+    try:
+        if current_user.role_id != 2:
+            return JSONResponse(status_code=403, content={
+                    'status': 'error',
+                    'data': None,
+                    'details': 'You dont have access to this'
+                })
+
+        ad = await session.get(Ad, ad_id)
+        if ad is None:
+            return JSONResponse(status_code=404, content={
+                    'status': 'error',
+                    'data': None,
+                    'details': 'Ad not found'
+                })
+
+        await session.execute(
+            update(Ad).where(Ad.id == ad_id).values(type=ads_type)
+        )
+        await session.commit()
+
+        return {
+            'status': 'success',
+            'data': ad,
+            'details': None
+        }
+
+    except Exception:
+        raise HTTPException(status_code=500, detail={
+            'status': 'error',
+            'data': None,
+            'details': 'An unexpected error occurred'
+        })
+
+
 @router.delete("/{ad_id}", status_code=204, responses={
-    401: {"description": "Unauthorized"},
     403: {"description": "You do not have permission to access this resource"},
     404: {"description": "Ad not found"},
     500: {"description": "Internal Server Error"}
@@ -181,7 +226,9 @@ async def get_comments_for_ad(
 
         query = select(Comment).where(
             Comment.ad_id == ad_id
-        ).order_by(Comment.created_at.desc()).limit(size).offset((page - 1) * size)
+        ).order_by(
+            Comment.created_at.desc()
+        ).limit(size).offset((page - 1) * size)
         result = await session.execute(query)
         return {
             'status': 'success',
