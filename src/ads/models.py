@@ -1,12 +1,12 @@
 from enum import Enum as PythonEnum
 
 from sqlalchemy import (
-    Table, Column, Integer, String, DateTime,
+    Column, Integer, String, DateTime,
     MetaData, Enum, func, ForeignKey, Float
 )
 from sqlalchemy.orm import declarative_base
 
-from auth.models import user
+from auth.models import User
 
 metadata = MetaData()
 
@@ -28,4 +28,4 @@ class Ad(Base):
     price = Column(Float)
     type = Column(Enum(AdType))
     created_at = Column(DateTime(timezone=True), default=func.now())
-    user_id = Column(Integer, ForeignKey(user.c.id))
+    user_id = Column(Integer, ForeignKey(User.id))
