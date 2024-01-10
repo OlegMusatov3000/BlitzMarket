@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy import select, insert, and_
+from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import SQLAlchemyError
 
 from auth.base_config import current_user
 from auth.models import User
-from ads.models import Ad, AdType
-from ads.schemas import AdCreate
+from ads.models import Ad, AdType, Comment
+from ads.schemas import AdCreate, CommentCreate
 from database import get_async_session
 
 router = APIRouter(
@@ -119,3 +118,26 @@ async def delete_ad(
             'data': None,
             'detail': 'An unexpected error occurred'
         })
+
+
+@router.post("/{ad_id}/comments", status_code=201, responses={
+    401: {"description": "Unauthorized"},
+    500: {"description": "Internal Server Error"}
+})
+async def add_comment(
+    ad_id: int,
+    comment_data: CommentCreate,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_user)
+):
+    ad = await session.get(Ad, ad_id)
+    if ad is None:
+        raise HTTPException(status_code=404, detail="Ad not found")
+
+    comment_values = comment_data.dict()
+    comment_values["user_id"] = current_user.id
+    comment_values["ad_id"] = ad_id
+    stmt = insert(Comment).values(**comment_values)
+    await session.execute(stmt)
+    await session.commit()
+    return {"status": "success", "data": comment_values, "details": None}

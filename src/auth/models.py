@@ -3,22 +3,22 @@ from datetime import datetime
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable
 from sqlalchemy import (
     Column, Integer, String, TIMESTAMP,
-    ForeignKey, Boolean, MetaData
+    ForeignKey, Boolean
 )
+from sqlalchemy.orm import declarative_base
 
-from database import Base
-
-metadata = MetaData()
+base = declarative_base()
 
 
-class Role(Base):
+class Role(base):
     __tablename__ = "role"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
 
 
-class User(SQLAlchemyBaseUserTable[int], Base):
+class User(SQLAlchemyBaseUserTable[int], base):
+
     id = Column(Integer, primary_key=True)
     email = Column(String, nullable=False)
     username = Column(String, nullable=False)

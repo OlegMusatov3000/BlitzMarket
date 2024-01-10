@@ -7,3 +7,7 @@ class AdCreate(BaseModel):
     description: str
     price: float
     type: str
+
+
+class CommentCreate(BaseModel):
+    text: str

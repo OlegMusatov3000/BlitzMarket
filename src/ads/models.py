@@ -2,15 +2,13 @@ from enum import Enum as PythonEnum
 
 from sqlalchemy import (
     Column, Integer, String, DateTime,
-    MetaData, Enum, func, ForeignKey, Float
+    Enum, func, ForeignKey, Float
 )
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import relationship, declarative_base
 
 from auth.models import User
 
-metadata = MetaData()
-
-Base = declarative_base()
+base = declarative_base()
 
 
 class AdType(str, PythonEnum):
@@ -19,7 +17,7 @@ class AdType(str, PythonEnum):
     service = "service"
 
 
-class Ad(Base):
+class Ad(base):
     __tablename__ = "ad"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -29,3 +27,15 @@ class Ad(Base):
     type = Column(Enum(AdType))
     created_at = Column(DateTime(timezone=True), default=func.now())
     user_id = Column(Integer, ForeignKey(User.id))
+    comments = relationship("Comment", back_populates="ad")
+
+
+class Comment(base):
+    __tablename__ = "comment"
+
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(String)
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    user_id = Column(Integer, ForeignKey(User.id))
+    ad_id = Column(Integer, ForeignKey("ad.id"))
+    ad = relationship("Ad", back_populates="comments")
