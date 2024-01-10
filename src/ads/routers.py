@@ -56,7 +56,7 @@ async def get_list_ads(
     try:
         query = select(Ad).where(
             Ad.type == ads_type
-        ).order_by(Ad.id).limit(size).offset((page - 1) * size)
+        ).order_by(Ad.created_at.desc()).limit(size).offset((page - 1) * size)
         result = await session.execute(query)
         return {
             'status': 'success',
@@ -181,7 +181,7 @@ async def get_comments_for_ad(
 
         query = select(Comment).where(
             Comment.ad_id == ad_id
-        ).limit(size).offset((page - 1) * size)
+        ).order_by(Comment.created_at.desc()).limit(size).offset((page - 1) * size)
         result = await session.execute(query)
         return {
             'status': 'success',
