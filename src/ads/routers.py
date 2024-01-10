@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,11 +30,17 @@ async def add_ad(
         stmt = insert(Ad).values(**ad_values)
         await session.execute(stmt)
         await session.commit()
+        created_ad = await session.get(Ad, ad_values["id"])
+        return {
+            'status': 'success',
+            'data': created_ad,
+            'details': None
+        }
     except Exception:
         raise HTTPException(status_code=500, detail={
             'status': 'error',
             'data': None,
-            'detail': 'An unexpected error occurred'
+            'details': 'An unexpected error occurred'
         })
 
 
@@ -42,21 +48,28 @@ async def add_ad(
     500: {"description": "Internal Server Error"}
 })
 async def get_list_ads(
-    ads_type: AdType, session: AsyncSession = Depends(get_async_session)
+    ads_type: AdType,
+    page: int = Query(ge=1, default=1),
+    size: int = Query(ge=1, le=100),
+    session: AsyncSession = Depends(get_async_session)
 ):
     try:
-        query = select(Ad).where(Ad.type == ads_type)
+        query = select(Ad).where(
+            Ad.type == ads_type
+        ).order_by(Ad.id).limit(size).offset((page - 1) * size)
         result = await session.execute(query)
         return {
             'status': 'success',
-            'data': result.mappings().all(),
-            'details': None
+            'data': result.scalars().all(),
+            'details': None,
+            'page': page,
+            'size': size,
         }
     except Exception:
         raise HTTPException(status_code=500, detail={
             'status': 'error',
             'data': None,
-            'detail': 'An unexpected error occurred'
+            'details': 'An unexpected error occurred'
         })
 
 
@@ -78,7 +91,7 @@ async def get_detail_ad(
         raise HTTPException(status_code=500, detail={
             'status': 'error',
             'data': None,
-            'detail': 'An unexpected error occurred'
+            'details': 'An unexpected error occurred'
         })
 
 
@@ -99,14 +112,14 @@ async def delete_ad(
             return JSONResponse(status_code=404, content={
                 'status': 'error',
                 'data': None,
-                'detail': 'Ad not found'
+                'details': 'Ad not found'
             })
 
         if ad_to_delete.user_id != current_user.id:
             return JSONResponse(status_code=403, content={
                 'status': 'error',
                 'data': None,
-                'detail': 'You do not have permission to access this resource'
+                'details': 'You do not have permission to access this resource'
             })
 
         await session.delete(ad_to_delete)
@@ -116,7 +129,7 @@ async def delete_ad(
         raise HTTPException(status_code=500, detail={
             'status': 'error',
             'data': None,
-            'detail': 'An unexpected error occurred'
+            'details': 'An unexpected error occurred'
         })
 
 
@@ -136,7 +149,7 @@ async def add_comment(
         return JSONResponse(status_code=404, content={
                 'status': 'error',
                 'data': None,
-                'detail': 'Ad not found'
+                'details': 'Ad not found'
             })
 
     comment_values = comment_data.model_dump()
@@ -153,7 +166,9 @@ async def add_comment(
     500: {"description": "Internal Server Error"}
 })
 async def get_comments_for_ad(
-    ad_id: int, session: AsyncSession = Depends(get_async_session)
+    ad_id: int, session: AsyncSession = Depends(get_async_session),
+    page: int = Query(ge=1, default=1),
+    size: int = Query(ge=1, le=100),
 ):
     try:
         ad = await session.get(Ad, ad_id)
@@ -161,18 +176,23 @@ async def get_comments_for_ad(
             return JSONResponse(status_code=404, content={
                     'status': 'error',
                     'data': None,
-                    'detail': 'Ad not found'
+                    'details': 'Ad not found'
                 })
 
-        comments = await session.get(Comment, ad_id)
+        query = select(Comment).where(
+            Comment.ad_id == ad_id
+        ).limit(size).offset((page - 1) * size)
+        result = await session.execute(query)
         return {
             'status': 'success',
-            'data': comments,
-            'details': None
+            'data': result.mappings().all(),
+            'details': None,
+            'page': page,
+            'size': size,
         }
 
     except Exception:
-        raise HTTPException(status_code=500, detail={
+        raise HTTPException(status_code=500, details={
             'status': 'error',
             'data': None,
             'details': 'An unexpected error occurred'
@@ -194,7 +214,7 @@ async def delete_comment(
             return JSONResponse(status_code=403, content={
                     'status': 'error',
                     'data': None,
-                    'detail': 'You dont have access to this'
+                    'details': 'You dont have access to this'
                 })
 
         comment = await session.get(Comment, comment_id)
@@ -202,7 +222,7 @@ async def delete_comment(
             return JSONResponse(status_code=404, content={
                     'status': 'error',
                     'data': None,
-                    'detail': 'Comment not found'
+                    'details': 'Comment not found'
                 })
         await session.delete(comment)
         await session.commit()
