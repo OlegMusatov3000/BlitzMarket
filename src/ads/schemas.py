@@ -11,3 +11,7 @@ class AdCreate(BaseModel):
 
 class CommentCreate(BaseModel):
     text: str
+
+
+class ComplaintCreate(BaseModel):
+    text: str
