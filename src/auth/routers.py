@@ -1,3 +1,5 @@
+import traceback
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy import update
@@ -5,7 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.base_config import current_user
 from auth.models import User
+from constants import CRITICAL_ERROR
+from config import logger
 from database import get_async_session
+from telegram_bot import send_message_to_telegram
+
 
 router = APIRouter(
     prefix="/users",
@@ -54,9 +60,7 @@ async def change_user_role(
             "details": None
         }
 
-    except Exception:
-        raise HTTPException(status_code=500, detail={
-            "status": "error",
-            "data": None,
-            "detail": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)

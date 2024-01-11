@@ -1,3 +1,5 @@
+import traceback
+
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy import select, insert, update, and_
@@ -7,7 +9,10 @@ from auth.base_config import current_user
 from auth.models import User
 from ads.models import Ad, AdType, Comment, Review
 from ads.schemas import AdCreate, CommentCreate, ReviewCreate
+from constants import CRITICAL_ERROR
+from config import logger
 from database import get_async_session
+from telegram_bot import send_message_to_telegram
 
 router = APIRouter(
     prefix="/ads",
@@ -36,12 +41,10 @@ async def add_ad(
             "data": ad_values,
             "details": None
         }
-    except Exception:
-        raise HTTPException(status_code=500, detail={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.get("/", responses={
@@ -65,12 +68,10 @@ async def get_list_ads(
             "page": page,
             "size": size,
         }
-    except Exception:
-        raise HTTPException(status_code=500, detail={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.get("/{ad_id}", responses={
@@ -87,12 +88,10 @@ async def get_detail_ad(
             "data": ad,
             "details": None
         }
-    except Exception:
-        raise HTTPException(status_code=500, detail={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.put("/{ad_id}/move_ad", responses={
@@ -133,12 +132,10 @@ async def move_ad(
             "details": None
         }
 
-    except Exception:
-        raise HTTPException(status_code=500, detail={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.delete("/{ad_id}", status_code=204, responses={
@@ -170,12 +167,10 @@ async def delete_ad(
         await session.delete(ad_to_delete)
         await session.commit()
 
-    except Exception:
-        raise HTTPException(status_code=500, detail={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.post("/{ad_id}/comments", status_code=201, responses={
@@ -189,21 +184,27 @@ async def add_comment(
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(current_user)
 ):
-    ad = await session.get(Ad, ad_id)
-    if ad is None:
-        return JSONResponse(status_code=404, content={
-                "status": "error",
-                "data": None,
-                "details": "Ad not found"
-            })
+    try:
+        ad = await session.get(Ad, ad_id)
+        if ad is None:
+            return JSONResponse(status_code=404, content={
+                    "status": "error",
+                    "data": None,
+                    "details": "Ad not found"
+                })
 
-    comment_values = comment_data.model_dump()
-    comment_values["user_id"] = current_user.id
-    comment_values["ad_id"] = ad_id
-    stmt = insert(Comment).values(**comment_values)
-    await session.execute(stmt)
-    await session.commit()
-    return {"status": "success", "data": comment_values, "details": None}
+        comment_values = comment_data.model_dump()
+        comment_values["user_id"] = current_user.id
+        comment_values["ad_id"] = ad_id
+        stmt = insert(Comment).values(**comment_values)
+        await session.execute(stmt)
+        await session.commit()
+        return {"status": "success", "data": comment_values, "details": None}
+
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.get("/{ad_id}/comments", responses={
@@ -238,12 +239,10 @@ async def get_comments_for_ad(
             "size": size,
         }
 
-    except Exception:
-        raise HTTPException(status_code=500, details={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.delete("/comments/{comment_id}", status_code=204, responses={
@@ -274,12 +273,10 @@ async def delete_comment(
         await session.delete(comment)
         await session.commit()
 
-    except Exception:
-        raise HTTPException(status_code=500, detail={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.post("/{ad_id}/reviews", status_code=201, responses={
@@ -334,12 +331,10 @@ async def add_review(
             "details": None
         }
 
-    except Exception:
-        raise HTTPException(status_code=500, detail={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.get("/{ad_id}/reviews", responses={
@@ -374,9 +369,7 @@ async def get_reviews_for_ad(
             "size": size,
         }
 
-    except Exception:
-        raise HTTPException(status_code=500, details={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)

@@ -1,3 +1,5 @@
+import traceback
+
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy import select, insert, and_
@@ -8,7 +10,10 @@ from auth.models import User
 from ads.models import Ad
 from complaints.models import Complaint
 from complaints.schemas import ComplaintCreate
+from constants import CRITICAL_ERROR
+from config import logger
 from database import get_async_session
+from telegram_bot import send_message_to_telegram
 
 router = APIRouter(
     prefix="/complaints",
@@ -46,12 +51,10 @@ async def get_list_complaints(
             "size": size,
         }
 
-    except Exception:
-        raise HTTPException(status_code=500, details={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.post("/{ad_id}", status_code=201, responses={
@@ -94,9 +97,8 @@ async def add_complaint(
         await session.execute(stmt)
         await session.commit()
         return {"status": "success", "data": complaint_values, "details": None}
-    except Exception:
-        raise HTTPException(status_code=500, details={
-            "status": "error",
-            "data": None,
-            "details": "An unexpected error occurred"
-        })
+
+    except Exception as error:
+        logger.error(f'{error}\n{traceback.format_exc()}')
+        send_message_to_telegram(error)
+        raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
