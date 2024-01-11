@@ -29,9 +29,9 @@ async def get_list_complaints(
     try:
         if current_user.role_id != 2:
             return JSONResponse(status_code=403, content={
-                    'status': 'error',
-                    'data': None,
-                    'details': 'You dont have access to this'
+                    "status": "error",
+                    "data": None,
+                    "details": "You dont have access to this"
                 })
 
         query = select(Complaint).order_by(
@@ -39,18 +39,18 @@ async def get_list_complaints(
         ).limit(size).offset((page - 1) * size)
         result = await session.execute(query)
         return {
-            'status': 'success',
-            'data': result.scalars().all(),
-            'details': None,
-            'page': page,
-            'size': size,
+            "status": "success",
+            "data": result.scalars().all(),
+            "details": None,
+            "page": page,
+            "size": size,
         }
 
     except Exception:
         raise HTTPException(status_code=500, details={
-            'status': 'error',
-            'data': None,
-            'details': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
         })
 
 
@@ -70,9 +70,9 @@ async def add_complaint(
         ad = await session.get(Ad, ad_id)
         if ad is None:
             return JSONResponse(status_code=404, content={
-                    'status': 'error',
-                    'data': None,
-                    'details': 'Ad not found'
+                    "status": "error",
+                    "data": None,
+                    "details": "Ad not found"
                 })
 
         query = select(Complaint).where(and_(
@@ -82,9 +82,9 @@ async def add_complaint(
         existing_complaint = await session.execute(query)
         if existing_complaint.scalars().all():
             return JSONResponse(status_code=400, content={
-                'status': 'error',
-                'data': None,
-                'details': 'Repeated complaint'
+                "status": "error",
+                "data": None,
+                "details": "Repeated complaint"
             })
 
         complaint_values = complaint_data.model_dump()
@@ -96,7 +96,7 @@ async def add_complaint(
         return {"status": "success", "data": complaint_values, "details": None}
     except Exception:
         raise HTTPException(status_code=500, details={
-            'status': 'error',
-            'data': None,
-            'details': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
         })

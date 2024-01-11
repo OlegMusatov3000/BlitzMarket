@@ -2,7 +2,7 @@ from enum import Enum as PythonEnum
 
 from sqlalchemy import (
     Column, Integer, String, DateTime,
-    Enum, func, ForeignKey, Float
+    Enum, func, ForeignKey, Float, CheckConstraint
 )
 from sqlalchemy.orm import relationship, declarative_base
 
@@ -28,6 +28,7 @@ class Ad(base):
     created_at = Column(DateTime(timezone=True), default=func.now())
     user_id = Column(Integer, ForeignKey(User.id))
     comments = relationship("Comment", back_populates="ad")
+    reviews = relationship("Review", back_populates="ad")
 
 
 class Comment(base):
@@ -39,3 +40,19 @@ class Comment(base):
     user_id = Column(Integer, ForeignKey(User.id))
     ad_id = Column(Integer, ForeignKey(Ad.id))
     ad = relationship("Ad", back_populates="comments")
+
+
+class Review(base):
+    __tablename__ = "review"
+
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(String)
+    rating = Column(
+        Integer, CheckConstraint("rating >= 1 and rating <= 5"),
+        nullable=False
+    )
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    user_id = Column(Integer, ForeignKey(User.id))
+    ad_id = Column(Integer, ForeignKey(Ad.id))
+
+    ad = relationship("Ad", back_populates="reviews")

@@ -10,3 +10,8 @@ class AdCreate(BaseModel):
 
 class CommentCreate(BaseModel):
     text: str
+
+
+class ReviewCreate(BaseModel):
+    text: str
+    rating: int

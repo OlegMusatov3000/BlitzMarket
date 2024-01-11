@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
-from sqlalchemy import select, insert, update
+from sqlalchemy import select, insert, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.base_config import current_user
 from auth.models import User
-from ads.models import Ad, AdType, Comment
-from ads.schemas import AdCreate, CommentCreate
+from ads.models import Ad, AdType, Comment, Review
+from ads.schemas import AdCreate, CommentCreate, ReviewCreate
 from database import get_async_session
 
 router = APIRouter(
@@ -32,15 +32,15 @@ async def add_ad(
         await session.commit()
 
         return {
-            'status': 'success',
-            'data': ad_values,
-            'details': None
+            "status": "success",
+            "data": ad_values,
+            "details": None
         }
     except Exception:
         raise HTTPException(status_code=500, detail={
-            'status': 'error',
-            'data': None,
-            'details': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
         })
 
 
@@ -59,17 +59,17 @@ async def get_list_ads(
         ).order_by(Ad.created_at.desc()).limit(size).offset((page - 1) * size)
         result = await session.execute(query)
         return {
-            'status': 'success',
-            'data': result.scalars().all(),
-            'details': None,
-            'page': page,
-            'size': size,
+            "status": "success",
+            "data": result.scalars().all(),
+            "details": None,
+            "page": page,
+            "size": size,
         }
     except Exception:
         raise HTTPException(status_code=500, detail={
-            'status': 'error',
-            'data': None,
-            'details': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
         })
 
 
@@ -83,15 +83,15 @@ async def get_detail_ad(
         ad = await session.get(Ad, ad_id)
 
         return {
-            'status': 'success',
-            'data': ad,
-            'details': None
+            "status": "success",
+            "data": ad,
+            "details": None
         }
     except Exception:
         raise HTTPException(status_code=500, detail={
-            'status': 'error',
-            'data': None,
-            'details': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
         })
 
 
@@ -109,17 +109,17 @@ async def move_ad(
     try:
         if current_user.role_id != 2:
             return JSONResponse(status_code=403, content={
-                    'status': 'error',
-                    'data': None,
-                    'details': 'You dont have access to this'
+                    "status": "error",
+                    "data": None,
+                    "details": "You dont have access to this"
                 })
 
         ad = await session.get(Ad, ad_id)
         if ad is None:
             return JSONResponse(status_code=404, content={
-                    'status': 'error',
-                    'data': None,
-                    'details': 'Ad not found'
+                    "status": "error",
+                    "data": None,
+                    "details": "Ad not found"
                 })
 
         await session.execute(
@@ -128,16 +128,16 @@ async def move_ad(
         await session.commit()
 
         return {
-            'status': 'success',
-            'data': ad,
-            'details': None
+            "status": "success",
+            "data": ad,
+            "details": None
         }
 
     except Exception:
         raise HTTPException(status_code=500, detail={
-            'status': 'error',
-            'data': None,
-            'details': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
         })
 
 
@@ -155,16 +155,16 @@ async def delete_ad(
 
         if ad_to_delete is None:
             return JSONResponse(status_code=404, content={
-                'status': 'error',
-                'data': None,
-                'details': 'Ad not found'
+                "status": "error",
+                "data": None,
+                "details": "Ad not found"
             })
 
         if ad_to_delete.user_id != current_user.id:
             return JSONResponse(status_code=403, content={
-                'status': 'error',
-                'data': None,
-                'details': 'You do not have permission to access this resource'
+                "status": "error",
+                "data": None,
+                "details": "You do not have permission to access this resource"
             })
 
         await session.delete(ad_to_delete)
@@ -172,9 +172,9 @@ async def delete_ad(
 
     except Exception:
         raise HTTPException(status_code=500, detail={
-            'status': 'error',
-            'data': None,
-            'details': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
         })
 
 
@@ -192,9 +192,9 @@ async def add_comment(
     ad = await session.get(Ad, ad_id)
     if ad is None:
         return JSONResponse(status_code=404, content={
-                'status': 'error',
-                'data': None,
-                'details': 'Ad not found'
+                "status": "error",
+                "data": None,
+                "details": "Ad not found"
             })
 
     comment_values = comment_data.model_dump()
@@ -219,9 +219,9 @@ async def get_comments_for_ad(
         ad = await session.get(Ad, ad_id)
         if ad is None:
             return JSONResponse(status_code=404, content={
-                    'status': 'error',
-                    'data': None,
-                    'details': 'Ad not found'
+                    "status": "error",
+                    "data": None,
+                    "details": "Ad not found"
                 })
 
         query = select(Comment).where(
@@ -231,18 +231,18 @@ async def get_comments_for_ad(
         ).limit(size).offset((page - 1) * size)
         result = await session.execute(query)
         return {
-            'status': 'success',
-            'data': result.mappings().all(),
-            'details': None,
-            'page': page,
-            'size': size,
+            "status": "success",
+            "data": result.mappings().all(),
+            "details": None,
+            "page": page,
+            "size": size,
         }
 
     except Exception:
         raise HTTPException(status_code=500, details={
-            'status': 'error',
-            'data': None,
-            'details': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
         })
 
 
@@ -259,24 +259,124 @@ async def delete_comment(
     try:
         if current_user.role_id != 2:
             return JSONResponse(status_code=403, content={
-                    'status': 'error',
-                    'data': None,
-                    'details': 'You dont have access to this'
+                    "status": "error",
+                    "data": None,
+                    "details": "You dont have access to this"
                 })
 
         comment = await session.get(Comment, comment_id)
         if comment is None:
             return JSONResponse(status_code=404, content={
-                    'status': 'error',
-                    'data': None,
-                    'details': 'Comment not found'
+                    "status": "error",
+                    "data": None,
+                    "details": "Comment not found"
                 })
         await session.delete(comment)
         await session.commit()
 
     except Exception:
         raise HTTPException(status_code=500, detail={
-            'status': 'error',
-            'data': None,
-            'details': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
+        })
+
+
+@router.post("/{ad_id}/reviews", status_code=201, responses={
+    400: {"description": "Invalid review"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Ad not found"},
+    500: {"description": "Internal Server Error"}
+})
+async def add_review(
+    ad_id: int,
+    review_data: ReviewCreate,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_user)
+):
+    try:
+        ad = await session.get(Ad, ad_id)
+        if ad is None:
+            return JSONResponse(status_code=404, content={
+                    "status": "error",
+                    "data": None,
+                    "details": "Ad not found"
+                })
+
+        query = select(Review).where(and_(
+                Review.ad_id == ad_id,
+                Review.user_id == current_user.id
+            ))
+        existing_complaint = await session.execute(query)
+        if existing_complaint.scalars().all():
+            return JSONResponse(status_code=400, content={
+                "status": "error",
+                "data": None,
+                "details": "Repeated review"
+            })
+
+        if not (1 <= review_data.rating <= 5):
+            return JSONResponse(status_code=400, content={
+                "status": "error",
+                "data": None,
+                "details": "Invalid rating. Must be one of: 1, 2, 3, 4, 5"
+            })
+
+        review_values = review_data.model_dump()
+        review_values["user_id"] = current_user.id
+        review_values["ad_id"] = ad_id
+        stmt = insert(Review).values(**review_values)
+        await session.execute(stmt)
+        await session.commit()
+        return {
+            "status": "success",
+            "data": review_values,
+            "details": None
+        }
+
+    except Exception:
+        raise HTTPException(status_code=500, detail={
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
+        })
+
+
+@router.get("/{ad_id}/reviews", responses={
+    404: {"description": "Ad not found"},
+    500: {"description": "Internal Server Error"}
+})
+async def get_reviews_for_ad(
+    ad_id: int, session: AsyncSession = Depends(get_async_session),
+    page: int = Query(ge=1, default=1),
+    size: int = Query(ge=1, le=100),
+):
+    try:
+        ad = await session.get(Ad, ad_id)
+        if ad is None:
+            return JSONResponse(status_code=404, content={
+                    "status": "error",
+                    "data": None,
+                    "details": "Ad not found"
+                })
+
+        query = select(Review).where(
+            Review.ad_id == ad_id
+        ).order_by(
+            Review.created_at.desc()
+        ).limit(size).offset((page - 1) * size)
+        result = await session.execute(query)
+        return {
+            "status": "success",
+            "data": result.mappings().all(),
+            "details": None,
+            "page": page,
+            "size": size,
+        }
+
+    except Exception:
+        raise HTTPException(status_code=500, details={
+            "status": "error",
+            "data": None,
+            "details": "An unexpected error occurred"
         })

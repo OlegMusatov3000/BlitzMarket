@@ -28,17 +28,17 @@ async def change_user_role(
     try:
         if current_user.role_id != 2:
             return JSONResponse(status_code=403, content={
-                    'status': 'error',
-                    'data': None,
-                    'detail': 'You dont have access to this'
+                    "status": "error",
+                    "data": None,
+                    "detail": "You dont have access to this"
                 })
 
         user_to_update = await session.get(User, user_id)
         if user_to_update is None:
             return JSONResponse(status_code=404, content={
-                    'status': 'error',
-                    'data': None,
-                    'detail': 'User not found'
+                    "status": "error",
+                    "data": None,
+                    "detail": "User not found"
                 })
 
         await session.execute(
@@ -49,14 +49,14 @@ async def change_user_role(
         await session.commit()
 
         return {
-            'status': 'success',
-            'data': user_to_update,
-            'details': None
+            "status": "success",
+            "data": user_to_update,
+            "details": None
         }
 
     except Exception:
         raise HTTPException(status_code=500, detail={
-            'status': 'error',
-            'data': None,
-            'detail': 'An unexpected error occurred'
+            "status": "error",
+            "data": None,
+            "detail": "An unexpected error occurred"
         })

@@ -7,13 +7,13 @@ from auth.routers import router as router_auth
 from complaints.routers import router as router_complaints
 
 app = FastAPI(
-    title='Blitz Market'
+    title="Blitz Market"
 )
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
-    prefix='/auth/jwt',
-    tags=['auth']
+    prefix="/auth/jwt",
+    tags=["auth"]
 )
 
 app.include_router(
