@@ -39,13 +39,3 @@ class Comment(base):
     user_id = Column(Integer, ForeignKey(User.id))
     ad_id = Column(Integer, ForeignKey(Ad.id))
     ad = relationship("Ad", back_populates="comments")
-
-
-class Complaint(base):
-    __tablename__ = "complaint"
-
-    id = Column(Integer, primary_key=True, index=True)
-    for_ad = Column(Integer, ForeignKey(Ad.id))
-    author = Column(Integer, ForeignKey(User.id))
-    text = Column(String)
-    created_at = Column(DateTime(timezone=True), default=func.now())
