@@ -6,7 +6,7 @@ from sqlalchemy import select, insert, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.base_config import current_user
-from auth.models import User
+from auth.models import RoleType, User
 from ads.models import Ad, AdType, Comment, Review
 from ads.schemas import AdCreate, CommentCreate, ReviewCreate
 from constants import CRITICAL_ERROR
@@ -42,7 +42,7 @@ async def add_ad(
             "details": None
         }
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
@@ -69,12 +69,13 @@ async def get_list_ads(
             "size": size,
         }
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
 
 @router.get("/{ad_id}", responses={
+    404: {"description": "Ad not found"},
     500: {"description": "Internal Server Error"}
 })
 async def get_detail_ad(
@@ -82,6 +83,12 @@ async def get_detail_ad(
 ):
     try:
         ad = await session.get(Ad, ad_id)
+        if ad is None:
+            return JSONResponse(status_code=404, content={
+                    "status": "error",
+                    "data": None,
+                    "details": "Ad not found"
+                })
 
         return {
             "status": "success",
@@ -89,7 +96,7 @@ async def get_detail_ad(
             "details": None
         }
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
@@ -106,7 +113,7 @@ async def move_ad(
     current_user: User = Depends(current_user)
 ):
     try:
-        if current_user.role_id != 2:
+        if current_user.role != RoleType.admin:
             return JSONResponse(status_code=403, content={
                     "status": "error",
                     "data": None,
@@ -133,7 +140,7 @@ async def move_ad(
         }
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
@@ -168,7 +175,7 @@ async def delete_ad(
         await session.commit()
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
@@ -202,7 +209,7 @@ async def add_comment(
         return {"status": "success", "data": comment_values, "details": None}
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
@@ -240,7 +247,7 @@ async def get_comments_for_ad(
         }
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
@@ -256,7 +263,7 @@ async def delete_comment(
     session: AsyncSession = Depends(get_async_session)
 ):
     try:
-        if current_user.role_id != 2:
+        if current_user.role != RoleType.admin:
             return JSONResponse(status_code=403, content={
                     "status": "error",
                     "data": None,
@@ -274,7 +281,7 @@ async def delete_comment(
         await session.commit()
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
@@ -332,7 +339,7 @@ async def add_review(
         }
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
@@ -370,6 +377,6 @@ async def get_reviews_for_ad(
         }
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)

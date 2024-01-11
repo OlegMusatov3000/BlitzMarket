@@ -6,7 +6,7 @@ from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.base_config import current_user
-from auth.models import User
+from auth.models import User, RoleType
 from constants import CRITICAL_ERROR
 from config import logger
 from database import get_async_session
@@ -26,13 +26,13 @@ router = APIRouter(
 })
 async def change_user_role(
     user_id: int,
-    current_user: User = Depends(current_user),
-    value_role_id: int = Query(ge=1, le=2, default=1),
+    value_role: RoleType,
     value_active: int = Query(ge=0, le=1, default=1),
+    current_user: User = Depends(current_user),
     session: AsyncSession = Depends(get_async_session)
 ):
     try:
-        if current_user.role_id != 2:
+        if current_user.role != RoleType.admin:
             return JSONResponse(status_code=403, content={
                     "status": "error",
                     "data": None,
@@ -49,7 +49,7 @@ async def change_user_role(
 
         await session.execute(
             update(User).where(User.id == user_id).values(
-                role_id=value_role_id, is_active=value_active
+                role=value_role, is_active=value_active
             )
         )
         await session.commit()
@@ -61,6 +61,6 @@ async def change_user_role(
         }
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)

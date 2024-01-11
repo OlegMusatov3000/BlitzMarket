@@ -14,15 +14,15 @@ DB_PASS = os.getenv("DB_PASS")
 
 SECRET_AUTH = os.getenv("SECRET_AUTH")
 
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
     handlers=(
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler('logfile.log', encoding='utf-8'),
+        logging.FileHandler("logfile.log", encoding="utf-8"),
     )
 )
 

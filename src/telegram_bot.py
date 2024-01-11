@@ -11,9 +11,9 @@ def send_message_to_telegram(message, bot=bot):
     try:
         bot.send_message(
             TELEGRAM_CHAT_ID,
-            f'произошла ошибка: {message}\n {traceback.format_exc()}'
+            f"произошла ошибка: {message}\n {traceback.format_exc()}"
         )
-        logger.info('Сообщение с критической ошибкой отправлено в телеграм')
+        logger.info("Сообщение с критической ошибкой отправлено в телеграм")
 
     except telegram.TelegramError as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")

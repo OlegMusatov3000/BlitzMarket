@@ -32,7 +32,7 @@ async def get_list_complaints(
     session: AsyncSession = Depends(get_async_session)
 ):
     try:
-        if current_user.role_id != 2:
+        if current_user.role != "admin":
             return JSONResponse(status_code=403, content={
                     "status": "error",
                     "data": None,
@@ -52,7 +52,7 @@ async def get_list_complaints(
         }
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
 
@@ -99,6 +99,6 @@ async def add_complaint(
         return {"status": "success", "data": complaint_values, "details": None}
 
     except Exception as error:
-        logger.error(f'{error}\n{traceback.format_exc()}')
+        logger.error(f"{error}\n{traceback.format_exc()}")
         send_message_to_telegram(error)
         raise HTTPException(status_code=500, detail=CRITICAL_ERROR)
