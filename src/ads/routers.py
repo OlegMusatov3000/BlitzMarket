@@ -2,6 +2,7 @@ import traceback
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
+from fastapi_cache.decorator import cache
 from sqlalchemy import select, insert, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,6 +51,7 @@ async def add_ad(
 @router.get("/", responses={
     500: {"description": "Internal Server Error"}
 })
+@cache(expire=30)
 async def get_list_ads(
     ads_type: AdType,
     page: int = Query(ge=1, default=1),
@@ -78,6 +80,7 @@ async def get_list_ads(
     404: {"description": "Ad not found"},
     500: {"description": "Internal Server Error"}
 })
+@cache(expire=30)
 async def get_detail_ad(
     ad_id: int, session: AsyncSession = Depends(get_async_session)
 ):
@@ -218,6 +221,7 @@ async def add_comment(
     404: {"description": "Ad not found"},
     500: {"description": "Internal Server Error"}
 })
+@cache(expire=30)
 async def get_comments_for_ad(
     ad_id: int, session: AsyncSession = Depends(get_async_session),
     page: int = Query(ge=1, default=1),
@@ -348,6 +352,7 @@ async def add_review(
     404: {"description": "Ad not found"},
     500: {"description": "Internal Server Error"}
 })
+@cache(expire=30)
 async def get_reviews_for_ad(
     ad_id: int, session: AsyncSession = Depends(get_async_session),
     page: int = Query(ge=1, default=1),

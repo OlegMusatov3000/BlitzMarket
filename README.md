@@ -8,6 +8,7 @@
 [![Alembic](https://img.shields.io/badge/-Alembic-464646?style=flat-square&logo=Alembic)](https://alembic.sqlalchemy.org/en/latest/)
 [![SQLAlchemy](https://img.shields.io/badge/-SQLAlchemy-464646?style=flat-square&logo=SQLAlchemy)](https://www.sqlalchemy.org/)
 [![Docker](https://img.shields.io/badge/-Docker-464646?style=flat-square&logo=docker)](https://www.docker.com/)
+[![Redis](https://img.shields.io/badge/-Redis-464646?style=flat-square&logo=Redis)](https://redis.io/)
 [![Uvicorn](https://img.shields.io/badge/-Uvicorn-464646?style=flat-square&logo=uvicorn)](https://www.uvicorn.org/)
 [![Gunicorn](https://img.shields.io/badge/-Gunicorn-464646?style=flat-square&logo=gunicorn)](https://gunicorn.org/)
 
@@ -49,6 +50,7 @@
 - Серверная пагинация
 - Фильтрация объявлений 
 - Сортировка записей
+- Кеширование с помощью Redis
 - Авторизация с помощью JWT-токена
 - Сборка проекта в докер-образ
 - Настройка логгера(терминал)
@@ -63,6 +65,7 @@
 - JWT
 - Alembic
 - SQLAlchemy
+- Redis
 - Docker
 - PostgreSQL
 - Asyncpg

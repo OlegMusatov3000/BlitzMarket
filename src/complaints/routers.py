@@ -2,6 +2,7 @@ import traceback
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
+from fastapi_cache.decorator import cache
 from sqlalchemy import select, insert, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,6 +26,7 @@ router = APIRouter(
     403: {"description": "Access forbidden for this role"},
     500: {"description": "Internal Server Error"}
 })
+@cache(expire=30)
 async def get_list_complaints(
     page: int = Query(ge=1, default=1),
     size: int = Query(ge=1, le=100),
